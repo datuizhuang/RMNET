@@ -57,8 +57,6 @@ class RMReset(nn.Module):
         x = self.relu(x)
         x = self.max_pooling(x)
 
-        assert (x >= 0).all()
-
         if self.deploy_features is not None:
             x = self.deploy_features(x)
         else:
@@ -83,6 +81,22 @@ class RMReset(nn.Module):
         [delattr(self, "layer{}".format(i)) for i in range(1, 5)]
 
         self.deploy_features = nn.Sequential(*module_list)
+
+    @property
+    def no_weight_decay_params(self):
+        no_weight_decay_list = []
+
+        def help(model:nn.Module, name:str=""):
+            if hasattr(model, '_no_weight_decay_params'):
+                cur = model._no_weight_decay_params
+                cur = [n if name == '' else name + '.' + n for n in cur]
+                no_weight_decay_list.extend(cur)
+
+            for n, child in model.named_children():
+                help(child, n if name == "" else name + '.' + n)
+
+        help(self, '')
+        return no_weight_decay_list
 
 
 def rmresnet(block=NormalRMBottleNeck, layers=[1, 1, 1, 1], last_stride=2, width=1, head_dim=0):

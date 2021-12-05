@@ -285,6 +285,10 @@ class NormalRMBottleNeck(nn.Module):
                     print('self.{} will be deleted when call deploy func......'.format(key))
                 delattr(self, key)
 
+    @property
+    def _no_weight_decay_params(self):
+        return ['bn1', 'bn2', 'bn3']
+
 
 def testBottleNeck():
     model = SimplifyRMBottleneck(inplanes=4, planes=3, stride=1).train()
